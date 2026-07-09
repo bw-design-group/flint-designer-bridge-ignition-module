@@ -34,7 +34,7 @@ Flint Designer Bridge provides a WebSocket-based communication layer between VS 
 
 ### From GitHub Release
 
-1. Download the latest `Flint-Designer-Bridge.modl` from the [Releases](https://github.com/bw-design-group/flint-designer-bridge/releases) page
+1. Download the latest `Flint-Designer-Bridge.modl` from the [Releases](https://github.com/bw-design-group/flint-designer-bridge-ignition-module/releases) page
 2. In your Ignition Gateway, go to **Config → Modules**
 3. Click **Install or Upgrade a Module**
 4. Upload the `.modl` file
@@ -44,8 +44,8 @@ Flint Designer Bridge provides a WebSocket-based communication layer between VS 
 
 ```bash
 # Clone the repository
-git clone https://github.com/bw-design-group/flint-designer-bridge.git
-cd flint-designer-bridge
+git clone https://github.com/bw-design-group/flint-designer-bridge-ignition-module.git
+cd flint-designer-bridge-ignition-module
 
 # Build the module (unsigned)
 ./gradlew build
@@ -141,8 +141,8 @@ MIT License - see [LICENSE.txt](LICENSE.txt) for details.
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/bw-design-group/flint-designer-bridge/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/bw-design-group/flint-designer-bridge/discussions)
+- **Issues**: [GitHub Issues](https://github.com/bw-design-group/flint-designer-bridge-ignition-module/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/bw-design-group/flint-designer-bridge-ignition-module/discussions)
 
 ---
 
