@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Ignition 8.3 authenticator that validates the platform's native API tokens (header {@code
  * X-Ignition-API-Token: keyId:secret}) via {@link ApiTokenManager}. Operators manage these keys in
- * the gateway UI. Falls back to a Flint-managed bearer token so a single client code path works across
- * versions.
+ * the gateway UI. Falls back to a Flint-managed bearer token so a single client code path works
+ * across versions.
  */
 public class ApiTokenAuthenticator implements GatewayAuthenticator {
 

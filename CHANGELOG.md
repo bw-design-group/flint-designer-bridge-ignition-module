@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-07-09
+
 ### Changed
 - Relicensed under the MIT License.
+
+## [1.1.0] - 2026-07-01
 
 ### Added
 - Added a headless gateway HTTP JSON-RPC endpoint at `/data/flint/rpc` (with `/data/flint/health`) so external tools can develop Ignition projects with no Designer running.

@@ -4,8 +4,8 @@ import java.util.List;
 
 /**
  * Response for the unauthenticated {@code GET /health} endpoint on the Gateway HTTP transport. Lets
- * a client (such as the Flint VS Code extension) probe a gateway URL, learn its Ignition/module version, and enable or
- * hide features based on advertised capabilities.
+ * a client (such as the Flint VS Code extension) probe a gateway URL, learn its Ignition/module
+ * version, and enable or hide features based on advertised capabilities.
  */
 public class HealthResult {
 
