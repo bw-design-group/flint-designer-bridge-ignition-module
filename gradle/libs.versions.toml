@@ -1,0 +1,23 @@
+[versions]
+ignition-sdk = "8.3.1"
+gson = "2.10.1"
+java-websocket = "1.6.0"
+modl-plugin = "0.5.0"
+junit = "5.10.2"
+mockito = "5.11.0"
+
+[libraries]
+ignition-common = { module = "com.inductiveautomation.ignitionsdk:ignition-common", version.ref = "ignition-sdk" }
+ignition-designer-api = { module = "com.inductiveautomation.ignitionsdk:designer-api", version.ref = "ignition-sdk" }
+ignition-gateway-api = { module = "com.inductiveautomation.ignitionsdk:gateway-api", version.ref = "ignition-sdk" }
+ignition-perspective-gateway = { module = "com.inductiveautomation.ignitionsdk:perspective-gateway", version.ref = "ignition-sdk" }
+ignition-perspective-common = { module = "com.inductiveautomation.ignitionsdk:perspective-common", version.ref = "ignition-sdk" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+java-websocket = { module = "org.java-websocket:Java-WebSocket", version.ref = "java-websocket" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
+
+[plugins]
+ignition-module = { id = "io.ia.sdk.modl", version.ref = "modl-plugin" }
