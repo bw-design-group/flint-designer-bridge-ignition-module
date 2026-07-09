@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Relicensed under the MIT License.
+
 ### Added
 - Added a headless gateway HTTP JSON-RPC endpoint at `/data/flint/rpc` (with `/data/flint/health`) so external tools can develop Ignition projects with no Designer running.
 - Added gateway-scope script execution, tag/UDT operations, Perspective inspection, debug, full project resource + Perspective view CRUD, and Perspective component-registry + icon-library queries over the new endpoint, on both Ignition 8.1 and 8.3.
