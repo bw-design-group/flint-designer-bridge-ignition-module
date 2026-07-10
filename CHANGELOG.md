@@ -91,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Prepare for v1.0.0 release [33cb648]
 
-## [1.0.0] - 2026-02-03
+## [0.10.0-RC1] - 2026-02-03
 
 Initial release of the Flint Designer Bridge module.
 

@@ -5,36 +5,45 @@
 > The module ID was renamed from `com.bwdesigngroup.flint-designer-bridge`
 > to `dev.bwdesigngroup.flint.FlintDesignerBridge` to align with
 > Ignition's reverse-DNS convention. Gateways with v0.13.x or earlier
-> installed must uninstall the old module before installing v1.0.0 —
+> installed must uninstall the old module before installing v1.0.0 or later —
 > the gateway sees the new ID as a separate module. The Java package
 > path was also renamed from `com.bwdesigngroup.ignition.flint.*` to
 > `dev.bwdesigngroup.flint.*` for consistency.
 
-An Ignition module that enables the [Flint VS Code Extension](https://github.com/bw-design-group/flint-vscode-extension) to connect to running Designer instances for script execution and debugging.
+An Ignition module that enables the [Flint VS Code Extension](https://github.com/bw-design-group/flint-vscode-extension) to connect to running Designer instances for script execution and debugging, and exposes a headless Gateway HTTP transport with a full Jython language server.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Ignition](https://img.shields.io/badge/Ignition-8.1.0+-orange.svg)
+![Ignition](https://img.shields.io/badge/Ignition-8.1.44+%20%7C%208.3.1+-orange.svg)
+
+**Documentation:** Full docs are available at [flint.bwdesigngroup.dev](https://flint.bwdesigngroup.dev).
 
 ## Overview
 
-Flint Designer Bridge provides a WebSocket-based communication layer between VS Code and Ignition Designer, enabling:
+Flint Designer Bridge provides a WebSocket-based communication layer between VS Code and Ignition Designer, plus a headless Gateway HTTP transport, enabling:
 
 - **Script Execution**: Run Python scripts directly from VS Code in the Designer or Gateway scope
 - **Debug Sessions**: Full debugging support with breakpoints, stepping, and variable inspection
 - **Output Capture**: Real-time stdout/stderr streaming to the VS Code debug console
 - **Session Management**: Persistent variable contexts across script executions
+- **Headless Gateway endpoint** (v1.1.0+): a `POST /data/flint/rpc` transport and `GET /data/flint/health` discovery endpoint that work without a running Designer
+- **Gateway Jython language server** (v1.1.0+): full completion, hover, go-to-definition, references, symbols, and syntax diagnostics served from the Gateway (the Designer WebSocket LSP is completion-only)
 
 ## Requirements
 
-- Ignition 8.1.0 or later
+- Ignition **8.1.44+** (install the `-8.1` artifact) or **8.3.1+** (install the `-8.3` artifact)
 - [Flint VS Code Extension](https://github.com/bw-design-group/flint-vscode-extension)
 
 ## Installation
 
 ### From GitHub Release
 
-1. Download the latest `Flint-Designer-Bridge.modl` from the [Releases](https://github.com/bw-design-group/flint-designer-bridge-ignition-module/releases) page
+Each release ships two artifacts. Download the one matching your Gateway from the [Releases](https://github.com/bw-design-group/flint-designer-bridge-ignition-module/releases) page:
+
+- `Flint-Designer-Bridge-<version>-8.1.modl` — for Ignition 8.1.44+
+- `Flint-Designer-Bridge-<version>-8.3.modl` — for Ignition 8.3.1+
+
+1. Download the artifact for your Ignition version
 2. In your Ignition Gateway, go to **Config → Modules**
 3. Click **Install or Upgrade a Module**
 4. Upload the `.modl` file
@@ -58,7 +67,7 @@ cd flint-designer-bridge-ignition-module
 When a Designer is launched, the module:
 
 1. Starts a WebSocket server on a dynamically assigned port
-2. Writes a connection file to `~/.flint/designer-instances/` containing:
+2. Writes a connection file to `~/.ignition/flint/designers/` containing:
    - WebSocket port number
    - Authentication secret
    - Project name
@@ -72,6 +81,80 @@ When a Designer is launched, the module:
 - The secret is stored in a file only readable by the current user
 - All JSON-RPC requests require prior authentication
 - Connection files are cleaned up when Designer closes
+
+## Gateway API Authentication
+
+In addition to the Designer WebSocket bridge, the module exposes a headless
+HTTP transport on the Gateway:
+
+| Endpoint | Method | Auth |
+|----------|--------|------|
+| `/data/flint/rpc` | POST | Required (see below) |
+| `/data/flint/health` | GET | None (capability discovery) |
+
+How you authenticate depends on the Ignition version.
+
+### Ignition 8.3+ — native API tokens
+
+Ignition 8.3 has platform API tokens built in. Create one in the Gateway web
+UI (**Config → Security → API Tokens**, or provision it as an
+`ignition/api-token` config resource) and send it on each request:
+
+```bash
+curl -H "X-Ignition-API-Token: <keyId>:<secret>" \
+     -X POST https://<gateway>/data/flint/rpc
+```
+
+The Flint-managed bearer token described below also works on 8.3 as a
+portable fallback, so a client written against the 8.1 scheme needs no
+changes.
+
+### Ignition 8.1 — Flint-managed bearer token
+
+Ignition 8.1 has no native API tokens, so the module manages its own shared
+secret and accepts it as a bearer token:
+
+```bash
+curl -H "Authorization: Bearer <token>" \
+     -X POST https://<gateway>/data/flint/rpc
+```
+
+At startup the module resolves the token in this order:
+
+1. **Operator-supplied** — the `flint.gateway.apiToken` JVM system property
+   (add a `wrapper.java.additional` entry in `ignition.conf`) or the
+   `FLINT_GATEWAY_API_TOKEN` environment variable (convenient in Docker).
+   Operator-supplied tokens are used verbatim and never written to disk.
+2. **Previously persisted** — an existing token file (see below).
+3. **Auto-generated** — a fresh 48-character hex token, generated and
+   persisted on first startup.
+
+#### Retrieving the generated token
+
+The token is deliberately never exposed over HTTP and never printed to the
+Gateway logs — reading it requires filesystem access to the Gateway, which is
+the security boundary. It lives in the Gateway data directory:
+
+```
+<ignition-data-dir>/modules/flint/gateway/api-token.json
+```
+
+(typically `/usr/local/bin/ignition/data/modules/flint/gateway/api-token.json`
+on a standard Linux install), as `{"token": "<value>"}` with `0600`
+permissions.
+
+#### Rotating the token
+
+Delete `api-token.json` and restart the Gateway (or the module); a fresh
+token is generated and persisted. If the token was operator-supplied, change
+the system property or environment variable instead.
+
+### Client configuration
+
+Clients (the Flint VS Code extension and the Flint MCP server / language
+server proxy) read the token from a local token file and pick the header
+automatically: bearer for 8.1, native API token for 8.3. Keep that token file
+out of version control — it is a plaintext secret.
 
 ## Development
 
@@ -109,23 +192,20 @@ Enable debug logging in the gateway:
 
 ## JSON-RPC Methods
 
-The module exposes the following JSON-RPC methods:
+The module exposes a large JSON-RPC surface (roughly 70 methods) grouped by
+capability. Representative core methods:
 
 | Method | Description |
 |--------|-------------|
 | `authenticate` | Authenticate with the Designer instance |
 | `ping` | Check connection status |
 | `executeScript` | Execute Python code in Designer or Gateway scope |
-| `debug.start` | Start a debug session |
-| `debug.setBreakpoints` | Set breakpoints for debugging |
-| `debug.continue` | Continue execution |
-| `debug.stepIn` | Step into function |
-| `debug.stepOut` | Step out of function |
-| `debug.stepOver` | Step over line |
-| `debug.evaluate` | Evaluate expression in current frame |
-| `debug.getStackTrace` | Get current stack trace |
-| `debug.getScopes` | Get variable scopes |
-| `debug.getVariables` | Get variables in a scope |
+| `debug.*` | Debug session control: `start`, `setBreakpoints`, `continue`, `stepIn`/`stepOut`/`stepOver`, `evaluate`, `getStackTrace`, `getScopes`, `getVariables` |
+| `lsp.*` | Jython language server: completion, hover, definition, references, symbols, and syntax diagnostics |
+
+Beyond these, the module serves methods for tags, Perspective views and
+components, UDTs, project resources, and icons. See the full method reference
+at [flint.bwdesigngroup.dev](https://flint.bwdesigngroup.dev).
 
 ## Contributing
 

@@ -1,0 +1,24 @@
+# Copy this file to `gradle.properties` and edit as needed.
+# `gradle.properties` is gitignored — your local credentials and paths
+# stay out of source control.
+
+# Module signing — set to true to sign locally with the self-signed
+# keystore configured below. Production releases sign via DigiCert
+# KeyLocker in CI, so no local certificate config is needed for those.
+signModule=false
+
+# Local self-signed keystore. Uncomment and fill in if you set
+# signModule=true above. Generate a keystore with:
+#   keytool -genkeypair -alias dev -keystore dev-keystore.jks -keyalg RSA \
+#     -dname "CN=Dev" -storepass changeit -keypass changeit
+# ignition.signing.keystoreFile=/absolute/path/to/dev-keystore.jks
+# ignition.signing.keystorePassword=changeit
+# ignition.signing.certFile=/absolute/path/to/cert.crt
+# ignition.signing.certAlias=dev
+# ignition.signing.certPassword=changeit
+
+# Local gateway URL — `./gradlew deployModl` will push the built .modl here.
+hostGateway=https://flint-dev.localtest.me:443
+
+# Ignition SDK target: 8.1 or 8.3 (default 8.3). Uncomment to override.
+# ignitionTarget=8.3
