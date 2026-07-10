@@ -16,7 +16,7 @@ An Ignition module that enables the [Flint VS Code Extension](https://github.com
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Ignition](https://img.shields.io/badge/Ignition-8.1.44+%20%7C%208.3.1+-orange.svg)
 
-**Documentation:** Full docs are available at [flint.bwdesigngroup.dev](https://flint.bwdesigngroup.dev).
+**Documentation:** Full docs are available at [flint.docs.bwdesigngroup.dev](https://flint.docs.bwdesigngroup.dev).
 
 ## Overview
 
@@ -205,7 +205,7 @@ capability. Representative core methods:
 
 Beyond these, the module serves methods for tags, Perspective views and
 components, UDTs, project resources, and icons. See the full method reference
-at [flint.bwdesigngroup.dev](https://flint.bwdesigngroup.dev).
+at [flint.docs.bwdesigngroup.dev](https://flint.docs.bwdesigngroup.dev).
 
 ## Contributing
 
