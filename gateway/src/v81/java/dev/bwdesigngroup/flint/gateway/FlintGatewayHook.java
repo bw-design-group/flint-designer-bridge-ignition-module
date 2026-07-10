@@ -21,6 +21,8 @@ import dev.bwdesigngroup.flint.gateway.http.LspDispatchExtension;
 import dev.bwdesigngroup.flint.gateway.lsp.FlintLanguageServer;
 import dev.bwdesigngroup.flint.gateway.lsp.ProjectIndex;
 import dev.bwdesigngroup.flint.gateway.lsp.V81HintsSource;
+import dev.bwdesigngroup.flint.gateway.lsp.ws.FlintLspWebSocketServlet;
+import dev.bwdesigngroup.flint.gateway.lsp.ws.LspWebSocketBridge;
 import dev.bwdesigngroup.flint.gateway.perspective.GatewayPerspectiveRegistry;
 import dev.bwdesigngroup.flint.gateway.perspective.PerspectiveScriptExecutor;
 import dev.bwdesigngroup.flint.gateway.perspective.PerspectiveSessionInspector;
@@ -31,6 +33,8 @@ import dev.bwdesigngroup.flint.gateway.script.GatewayScriptExecutor;
 import dev.bwdesigngroup.flint.gateway.tags.GatewayTagExecutor;
 import dev.bwdesigngroup.flint.gateway.view.GatewayViewService;
 import java.util.Optional;
+import javax.servlet.ServletContext;
+import org.eclipse.jetty.websocket.server.JettyWebSocketServerContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +54,7 @@ public class FlintGatewayHook extends AbstractGatewayModuleHook {
     private FlintGatewayRpcImpl rpcHandler;
     private GatewayRpcDispatcher dispatcher;
     private GatewayAuthenticator authenticator;
+    private LspWebSocketBridge lspWebSocketBridge;
 
     @Override
     public void setup(GatewayContext context) {
@@ -101,11 +106,14 @@ public class FlintGatewayHook extends AbstractGatewayModuleHook {
                 new GatewayPerspectiveExtension(new GatewayPerspectiveRegistry(context)));
 
         // Wire the headless Jython language server (lsp.*) with 8.1 system.* hints + project index.
-        this.dispatcher.addExtension(
-                new LspDispatchExtension(
-                        new FlintLanguageServer(
-                                new V81HintsSource(context),
-                                new ProjectIndex(resourceService.getStore()))));
+        FlintLanguageServer languageServer =
+                new FlintLanguageServer(
+                        new V81HintsSource(context), new ProjectIndex(resourceService.getStore()));
+        this.dispatcher.addExtension(new LspDispatchExtension(languageServer));
+
+        // Expose the same engine as a raw-LSP endpoint over WebSocket. Requires the Jetty 10
+        // WebSocket API (Ignition 8.1.33+); older gateways skip it and keep the HTTP lsp.* path.
+        startLspWebSocket(languageServer);
 
         logger.info("Flint Designer Bridge module started (Gateway scope)");
 
@@ -116,6 +124,9 @@ public class FlintGatewayHook extends AbstractGatewayModuleHook {
 
     @Override
     public void shutdown() {
+        // Tear down the LSP WebSocket transport before the rest of the gateway state.
+        stopLspWebSocket();
+
         // Shutdown debug executor
         if (debugExecutor != null) {
             debugExecutor.shutdown();
@@ -140,6 +151,63 @@ public class FlintGatewayHook extends AbstractGatewayModuleHook {
         dispatcher = null;
         authenticator = null;
         logger.info("Flint Designer Bridge module stopped (Gateway scope)");
+    }
+
+    /**
+     * Mounts the raw-LSP-over-WebSocket servlet at {@code /system/flint-lsp} and advertises the
+     * capability. Best-effort: guarded by {@code Class.forName} + a broad catch so gateways without
+     * the Jetty 10 WebSocket API still load the module (the HTTP {@code lsp.*} path is unaffected).
+     */
+    private void startLspWebSocket(FlintLanguageServer languageServer) {
+        try {
+            Class.forName("org.eclipse.jetty.websocket.server.JettyWebSocketServerContainer");
+            LspWebSocketBridge bridge =
+                    new LspWebSocketBridge(
+                            languageServer, authenticator, new Gson(), moduleVersion());
+            ServletContext servletContext = context.getWebResourceManager().getServletContext();
+            servletContext.setAttribute(FlintConstants.LSP_WS_BRIDGE_ATTR, bridge);
+            JettyWebSocketServerContainer.ensureContainer(servletContext);
+            context.getWebResourceManager()
+                    .addServlet(FlintConstants.GATEWAY_WS_LSP_NAME, FlintLspWebSocketServlet.class);
+            this.dispatcher.setLspWebSocketPath(FlintConstants.GATEWAY_WS_LSP_PATH);
+            this.lspWebSocketBridge = bridge;
+            logger.info(
+                    "Flint LSP WebSocket transport mounted at {}",
+                    FlintConstants.GATEWAY_WS_LSP_PATH);
+        } catch (Throwable t) {
+            logger.warn(
+                    "Flint LSP WebSocket transport unavailable on this gateway: {}", t.toString());
+        }
+    }
+
+    /** Removes the WebSocket servlet + bridge attribute and shuts the bridge down (idempotent). */
+    private void stopLspWebSocket() {
+        try {
+            context.getWebResourceManager().removeServlet(FlintConstants.GATEWAY_WS_LSP_NAME);
+        } catch (Throwable ignored) {
+            // Servlet may never have registered; nothing to remove.
+        }
+        if (lspWebSocketBridge != null) {
+            try {
+                context.getWebResourceManager()
+                        .getServletContext()
+                        .removeAttribute(FlintConstants.LSP_WS_BRIDGE_ATTR);
+            } catch (Throwable ignored) {
+                // Servlet context may already be torn down.
+            }
+            lspWebSocketBridge.shutdown();
+            lspWebSocketBridge = null;
+        }
+    }
+
+    /** Module version string used as the LSP {@code serverInfo.version}. */
+    private String moduleVersion() {
+        try {
+            String version = getClass().getPackage().getImplementationVersion();
+            return version != null ? version : "unknown";
+        } catch (Exception e) {
+            return "unknown";
+        }
     }
 
     /** Mounts the headless HTTP transport. Routes resolve under {@code /data/flint/*}. */

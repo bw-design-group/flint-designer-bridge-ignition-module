@@ -18,6 +18,16 @@ dependencies {
   compileOnly("com.inductiveautomation.ignitionsdk:perspective-gateway:$sdkVersion")
   compileOnly("com.inductiveautomation.ignitionsdk:perspective-common:$sdkVersion")
 
+  // Raw-LSP WebSocket transport: compile the per-target Jetty shim against the same Jetty API the
+  // platform ships (10 on 8.1, 12 ee10 on 8.3). compileOnly — nothing is bundled into the .modl.
+  if (ignitionTarget == "8.1") {
+    compileOnly(libs.jetty.ws.server.v81)
+    compileOnly(libs.jetty.ws.api.v81)
+  } else {
+    compileOnly(libs.jetty.ws.server.v83)
+    compileOnly(libs.jetty.ws.api.v83)
+  }
+
   testImplementation(platform(libs.junit.bom))
   testImplementation(libs.junit.jupiter)
   testImplementation(libs.mockito.core)

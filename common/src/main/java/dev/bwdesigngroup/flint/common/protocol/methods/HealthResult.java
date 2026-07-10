@@ -19,6 +19,7 @@ public class HealthResult {
     private List<String> unsupported;
     private List<String> projects;
     private String rpcPath;
+    private String lspWsPath;
 
     public HealthResult() {}
 
@@ -100,5 +101,13 @@ public class HealthResult {
 
     public void setRpcPath(String rpcPath) {
         this.rpcPath = rpcPath;
+    }
+
+    public String getLspWsPath() {
+        return lspWsPath;
+    }
+
+    public void setLspWsPath(String lspWsPath) {
+        this.lspWsPath = lspWsPath;
     }
 }

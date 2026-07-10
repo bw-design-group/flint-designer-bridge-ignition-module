@@ -183,6 +183,22 @@ public final class FlintConstants {
     public static final String GATEWAY_ROUTE_HEALTH = "/health";
 
     /**
+     * Raw-LSP-over-WebSocket transport constants. The servlet mounts at {@code /system/<name>} on
+     * the gateway (same port/TLS as the HTTP transport) so LSP clients connect directly to the
+     * engine.
+     */
+    public static final String GATEWAY_WS_LSP_NAME = "flint-lsp";
+
+    public static final String GATEWAY_WS_LSP_PATH = "/system/" + GATEWAY_WS_LSP_NAME;
+
+    /**
+     * {@code ServletContext} attribute under which the gateway hook publishes the {@code
+     * LspWebSocketBridge} so the container-instantiated WebSocket servlet can find it in {@code
+     * init()}.
+     */
+    public static final String LSP_WS_BRIDGE_ATTR = "dev.bwdesigngroup.flint.lspWebSocketBridge";
+
+    /**
      * System property / environment variable that lets an operator supply the gateway API token
      * instead of using the module-generated one. Useful for containers.
      */

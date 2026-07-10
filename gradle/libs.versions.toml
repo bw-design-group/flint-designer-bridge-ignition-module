@@ -5,6 +5,10 @@ java-websocket = "1.6.0"
 modl-plugin = "0.5.0"
 junit = "5.10.2"
 mockito = "5.11.0"
+# Jetty WebSocket APIs the gateway compiles against per target (compileOnly; supplied at runtime by
+# the platform). 8.1 ships Jetty 10 (javax); 8.3 ships Jetty 12 ee10 (jakarta).
+jetty-ws-v81 = "10.0.20"
+jetty-ws-v83 = "12.0.15"
 
 [libraries]
 ignition-common = { module = "com.inductiveautomation.ignitionsdk:ignition-common", version.ref = "ignition-sdk" }
@@ -14,6 +18,12 @@ ignition-perspective-gateway = { module = "com.inductiveautomation.ignitionsdk:p
 ignition-perspective-common = { module = "com.inductiveautomation.ignitionsdk:perspective-common", version.ref = "ignition-sdk" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 java-websocket = { module = "org.java-websocket:Java-WebSocket", version.ref = "java-websocket" }
+# 8.1 (Jetty 10) raw-WebSocket server + endpoint API.
+jetty-ws-server-v81 = { module = "org.eclipse.jetty.websocket:websocket-jetty-server", version.ref = "jetty-ws-v81" }
+jetty-ws-api-v81 = { module = "org.eclipse.jetty.websocket:websocket-jetty-api", version.ref = "jetty-ws-v81" }
+# 8.3 (Jetty 12 ee10) raw-WebSocket server + endpoint API.
+jetty-ws-server-v83 = { module = "org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server", version.ref = "jetty-ws-v83" }
+jetty-ws-api-v83 = { module = "org.eclipse.jetty.websocket:jetty-websocket-jetty-api", version.ref = "jetty-ws-v83" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }

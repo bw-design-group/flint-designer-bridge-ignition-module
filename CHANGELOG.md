@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added a native Language Server Protocol endpoint over WebSocket at `/system/flint-lsp`, letting LSP clients connect directly to the gateway.
+
 ## [1.1.2] - 2026-07-10
 
 ### Changed

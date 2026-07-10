@@ -28,6 +28,7 @@ Flint Designer Bridge provides a WebSocket-based communication layer between VS 
 - **Session Management**: Persistent variable contexts across script executions
 - **Headless Gateway endpoint** (v1.1.0+): a `POST /data/flint/rpc` transport and `GET /data/flint/health` discovery endpoint that work without a running Designer
 - **Gateway Jython language server** (v1.1.0+): full completion, hover, go-to-definition, references, symbols, and syntax diagnostics served from the Gateway (the Designer WebSocket LSP is completion-only)
+- **Native LSP over WebSocket** (v1.2.0+): the language server speaks the standard Language Server Protocol at `wss://<gateway>/system/flint-lsp`, so VS Code — or any LSP-capable editor — connects directly with a gateway API token
 
 ## Requirements
 
@@ -91,6 +92,7 @@ HTTP transport on the Gateway:
 |----------|--------|------|
 | `/data/flint/rpc` | POST | Required (see below) |
 | `/data/flint/health` | GET | None (capability discovery) |
+| `/system/flint-lsp` | WebSocket | Required — same schemes, sent as headers on the upgrade (v1.2.0+) |
 
 How you authenticate depends on the Ignition version.
 

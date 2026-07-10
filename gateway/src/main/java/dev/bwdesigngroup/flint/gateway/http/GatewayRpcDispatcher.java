@@ -38,10 +38,24 @@ public class GatewayRpcDispatcher {
     private final FlintGatewayRpc rpc;
     private final Gson gson;
 
+    /**
+     * Mount path of the raw-LSP WebSocket endpoint, or null when the transport isn't advertised.
+     */
+    private volatile String lspWebSocketPath;
+
     public GatewayRpcDispatcher(GatewayContext context, FlintGatewayRpc rpc, Gson gson) {
         this.context = context;
         this.rpc = rpc;
         this.gson = gson;
+    }
+
+    /**
+     * Records that the raw-LSP-over-WebSocket transport is mounted, so {@code /health} advertises
+     * the {@code lsp.websocket} capability and its path. Set by the hook only when the servlet
+     * registers successfully; left null on older gateways where the Jetty WebSocket API is absent.
+     */
+    public void setLspWebSocketPath(String lspWebSocketPath) {
+        this.lspWebSocketPath = lspWebSocketPath;
     }
 
     /**
@@ -795,6 +809,7 @@ public class GatewayRpcDispatcher {
         health.setProjects(listProjectNames());
         health.setRpcPath(
                 "/data/" + FlintConstants.GATEWAY_ROUTE_ALIAS + FlintConstants.GATEWAY_ROUTE_RPC);
+        health.setLspWsPath(lspWebSocketPath);
         return health;
     }
 
@@ -809,20 +824,25 @@ public class GatewayRpcDispatcher {
     }
 
     private List<String> capabilities() {
-        return new ArrayList<>(
-                Arrays.asList(
-                        "executeScript",
-                        "tags",
-                        "udt",
-                        "perspective",
-                        "debug",
-                        "project.scan",
-                        "project.listResources",
-                        "view",
-                        "project.getViewCatalog",
-                        "component",
-                        "icon",
-                        "lsp"));
+        List<String> capabilities =
+                new ArrayList<>(
+                        Arrays.asList(
+                                "executeScript",
+                                "tags",
+                                "udt",
+                                "perspective",
+                                "debug",
+                                "project.scan",
+                                "project.listResources",
+                                "view",
+                                "project.getViewCatalog",
+                                "component",
+                                "icon",
+                                "lsp"));
+        if (lspWebSocketPath != null) {
+            capabilities.add("lsp.websocket");
+        }
+        return capabilities;
     }
 
     private String moduleVersion() {
