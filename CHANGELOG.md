@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Released two signed artifacts per version: `Flint-Designer-Bridge-<version>-8.1.modl`
+  for Ignition 8.1.44+ and `Flint-Designer-Bridge-<version>-8.3.modl` for
+  Ignition 8.3.1+.
+
 ## [1.1.1] - 2026-07-09
 
 ### Changed
